@@ -6,61 +6,80 @@
 <title>脳トレ高速アプリ</title>
 
 <style>
-body{
+html,body{
     margin:0;
+    padding:0;
+    height:100%;
     font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
-    background:linear-gradient(180deg,#4facfe,#00f2fe);
+    background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
     overflow:hidden;
 }
 
-/* 🍪 クッキー背景 */
+/* 🍪 クッキー */
 .cookie{
     position:fixed;
-    width:60px;
-    height:60px;
-    background:radial-gradient(circle at 30% 30%, #d2691e 60%, #8b4513 100%);
     border-radius:50%;
-    box-shadow:inset -4px -4px 10px rgba(0,0,0,0.3);
     pointer-events:none;
     animation:spin linear infinite;
+    z-index:0;
 }
 
-/* チョコチップ */
 .cookie::after{
     content:"";
     position:absolute;
     width:100%;
     height:100%;
     background-image:
-        radial-gradient(#3b2f2f 6px, transparent 7px),
         radial-gradient(#3b2f2f 5px, transparent 6px),
-        radial-gradient(#3b2f2f 4px, transparent 5px);
+        radial-gradient(#3b2f2f 4px, transparent 5px),
+        radial-gradient(#3b2f2f 6px, transparent 7px);
     background-position:10px 15px, 35px 25px, 20px 40px;
     background-repeat:no-repeat;
 }
 
 @keyframes spin{
-    from{ transform:rotate(0deg); }
-    to{ transform:rotate(360deg); }
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
 }
 
+/* 🤖 隠れロボ */
+.hidden-bot{
+    position:fixed;
+    width:70px;
+    height:70px;
+    background:#2da9ff;
+    border-radius:50%;
+    box-shadow:0 0 20px rgba(0,0,255,0.6);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:32px;
+    cursor:pointer;
+    z-index:5;
+    animation:float 2s infinite ease-in-out;
+}
+
+@keyframes float{
+    0%{transform:translateY(0);}
+    50%{transform:translateY(-10px);}
+    100%{transform:translateY(0);}
+}
+
+/* アプリUI */
 .app{
     position:relative;
     z-index:10;
     background:white;
     width:95%;
     max-width:400px;
-    margin:50px auto;
+    margin:40px auto;
     border-radius:25px;
     padding:20px;
     box-shadow:0 15px 40px rgba(0,0,0,0.25);
     text-align:center;
 }
 
-#question{
-    font-size:30px;
-    margin:20px 0;
-}
+#question{font-size:28px;margin:20px 0;}
 
 input{
     font-size:22px;
@@ -82,9 +101,9 @@ button{
     cursor:pointer;
 }
 
-.stats{ margin-top:15px; font-size:14px; }
-.ranking{ margin-top:15px; text-align:left; }
-ol{ padding-left:20px; }
+.stats{margin-top:15px;font-size:14px;}
+.ranking{margin-top:15px;text-align:left;}
+ol{padding-left:20px;}
 </style>
 </head>
 <body>
@@ -98,7 +117,7 @@ ol{ padding-left:20px; }
 
     <div class="stats">
         ⏱ <span id="time">30</span>秒  
-        ⭐ スコア: <span id="score">0</span>  
+        ⭐ <span id="score">0</span>点  
         🚀 Lv.<span id="level">1</span>
     </div>
 
@@ -111,7 +130,7 @@ ol{ padding-left:20px; }
 <script>
 /* 🍪 クッキー生成 */
 function createCookies(){
-    const count = Math.floor(Math.random()*11)+5; // 5〜15個
+    const count=Math.floor(Math.random()*11)+5;
     for(let i=0;i<count;i++){
         const cookie=document.createElement("div");
         cookie.className="cookie";
@@ -119,15 +138,14 @@ function createCookies(){
         const size=Math.random()*40+40;
         cookie.style.width=size+"px";
         cookie.style.height=size+"px";
+        cookie.style.background="radial-gradient(circle at 30% 30%, #d2691e 60%, #8b4513 100%)";
 
         cookie.style.left=Math.random()*window.innerWidth+"px";
         cookie.style.top=Math.random()*window.innerHeight+"px";
 
-        const duration=Math.random()*10+10;
-        cookie.style.animationDuration=duration+"s";
+        cookie.style.animationDuration=(Math.random()*10+10)+"s";
 
         document.body.appendChild(cookie);
-
         moveRandom(cookie);
     }
 }
@@ -135,52 +153,64 @@ function createCookies(){
 function moveRandom(el){
     let x=Math.random()*window.innerWidth;
     let y=Math.random()*window.innerHeight;
-    let dx=(Math.random()-0.5)*0.5;
-    let dy=(Math.random()-0.5)*0.5;
+    let dx=(Math.random()-0.5)*0.6;
+    let dy=(Math.random()-0.5)*0.6;
 
     function animate(){
-        x+=dx;
-        y+=dy;
-
+        x+=dx; y+=dy;
         if(x<0||x>window.innerWidth) dx*=-1;
         if(y<0||y>window.innerHeight) dy*=-1;
-
         el.style.left=x+"px";
         el.style.top=y+"px";
-
         requestAnimationFrame(animate);
     }
     animate();
 }
-
 createCookies();
 
-/* ====== ゲーム部分（前回と同じ） ====== */
+/* 🤖 隠れロボ */
+function spawnHiddenBot(){
+    const bot=document.createElement("div");
+    bot.className="hidden-bot";
+    bot.textContent="🤖";
+
+    bot.style.left=Math.random()*(window.innerWidth-80)+"px";
+    bot.style.top=Math.random()*(window.innerHeight-80)+"px";
+
+    bot.onclick=function(){
+        score+=5;
+        updateDisplay();
+        bot.remove();
+    };
+
+    document.body.appendChild(bot);
+    setTimeout(()=>bot.remove(),8000);
+}
+setInterval(spawnHiddenBot,15000);
+
+/* ===== ゲーム部分 ===== */
 let score=0,time=30,level=1,timer,correct;
 let audioCtx=null;
 
 function initAudio(){
     if(!audioCtx){
-        audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+        audioCtx=new(window.AudioContext||window.webkitAudioContext)();
     }
-    if(audioCtx.state==="suspended"){
-        audioCtx.resume();
-    }
+    if(audioCtx.state==="suspended") audioCtx.resume();
 }
 
+/* 正解音 ピンポーン♪ */
 function playCorrect(){
     initAudio();
     const now=audioCtx.currentTime;
-
     const osc1=audioCtx.createOscillator();
     const osc2=audioCtx.createOscillator();
     const gain=audioCtx.createGain();
 
     osc1.type="triangle";
     osc2.type="triangle";
-
-    osc1.frequency.setValueAtTime(1046,now);
-    osc2.frequency.setValueAtTime(1568,now);
+    osc1.frequency.value=1046;
+    osc2.frequency.value=1568;
 
     osc1.connect(gain);
     osc2.connect(gain);
@@ -195,6 +225,7 @@ function playCorrect(){
     osc2.stop(now+0.6);
 }
 
+/* 不正解 */
 function playWrong(){
     initAudio();
     const now=audioCtx.currentTime;
@@ -214,6 +245,25 @@ function playWrong(){
     osc.stop(now+0.4);
 }
 
+/* 終了音 未来ガジェット風 */
+function playEnd(){
+    initAudio();
+    const now=audioCtx.currentTime;
+    const notes=[523,659,784,1046];
+    notes.forEach((f,i)=>{
+        const osc=audioCtx.createOscillator();
+        const gain=audioCtx.createGain();
+        osc.type="triangle";
+        osc.frequency.value=f;
+        gain.gain.setValueAtTime(0.7,now+i*0.15);
+        gain.gain.exponentialRampToValueAtTime(0.001,now+i*0.15+0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now+i*0.15);
+        osc.stop(now+i*0.15+0.4);
+    });
+}
+
 function updateDisplay(){
     scoreDisplay.textContent=score;
     levelDisplay.textContent=level;
@@ -223,12 +273,13 @@ function updateDisplay(){
 const scoreDisplay=document.getElementById("score");
 const levelDisplay=document.getElementById("level");
 const timeDisplay=document.getElementById("time");
+const question=document.getElementById("question");
+const answer=document.getElementById("answer");
 
 function generate(){
     let max=level*10;
     let a=Math.floor(Math.random()*max)+1;
     let b=Math.floor(Math.random()*max)+1;
-
     if(Math.random()>0.5){
         correct=a+b;
         question.textContent=`${a} + ${b} = ?`;
@@ -237,9 +288,6 @@ function generate(){
         question.textContent=`${a} - ${b} = ?`;
     }
 }
-
-const question=document.getElementById("question");
-const answer=document.getElementById("answer");
 
 function startGame(){
     initAudio();
@@ -257,6 +305,8 @@ function startGame(){
             clearInterval(timer);
             question.textContent="終了！";
             answer.disabled=true;
+            playEnd();
+            saveScore(score);
         }
     },1000);
 }
@@ -275,6 +325,28 @@ answer.addEventListener("keyup",e=>{
         generate();
     }
 });
+
+/* ランキング */
+function saveScore(newScore){
+    let scores=JSON.parse(localStorage.getItem("scores"))||[];
+    scores.push(newScore);
+    scores.sort((a,b)=>b-a);
+    scores=scores.slice(0,5);
+    localStorage.setItem("scores",JSON.stringify(scores));
+    displayRanking();
+}
+
+function displayRanking(){
+    let scores=JSON.parse(localStorage.getItem("scores"))||[];
+    let list=document.getElementById("rankingList");
+    list.innerHTML="";
+    scores.forEach(s=>{
+        let li=document.createElement("li");
+        li.textContent=s+" 点";
+        list.appendChild(li);
+    });
+}
+displayRanking();
 </script>
 
 </body>
