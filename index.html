@@ -88,43 +88,39 @@ function initAudio(){
     if(!audioCtx){
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-    if(audioCtx.state === "suspended"){
+    if(audioCtx.state==="suspended"){
         audioCtx.resume();
     }
 }
 
-// 🎯 クイズ番組風「ピン！ポン！」
+// 🎯 テレビ番組風「ピンポーン♪」1回
 function playCorrect(){
     initAudio();
     const now = audioCtx.currentTime;
 
-    function tone(freq,start){
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
 
-        osc1.type="triangle";
-        osc2.type="square";
+    // 明るい和音（ド＋ソ）
+    osc1.type="triangle";
+    osc2.type="triangle";
 
-        osc1.frequency.setValueAtTime(freq,start);
-        osc2.frequency.setValueAtTime(freq*2,start);
+    osc1.frequency.setValueAtTime(1046, now); // C6
+    osc2.frequency.setValueAtTime(1568, now); // G6
 
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(audioCtx.destination);
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(audioCtx.destination);
 
-        gain.gain.setValueAtTime(0.9,start);
-        gain.gain.exponentialRampToValueAtTime(0.001,start+0.18);
+    gain.gain.setValueAtTime(0.9, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
 
-        osc1.start(start);
-        osc2.start(start);
+    osc1.start(now);
+    osc2.start(now);
 
-        osc1.stop(start+0.18);
-        osc2.stop(start+0.18);
-    }
-
-    tone(1200,now);          // ピン！
-    tone(1800,now+0.22);     // ポン！
+    osc1.stop(now + 0.6);
+    osc2.stop(now + 0.6);
 }
 
 // ❌ ブー
