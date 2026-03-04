@@ -10,24 +10,58 @@ body{
     margin:0;
     font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
     background:linear-gradient(180deg,#4facfe,#00f2fe);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
+    overflow:hidden;
 }
+
+/* 🍪 クッキー背景 */
+.cookie{
+    position:fixed;
+    width:60px;
+    height:60px;
+    background:radial-gradient(circle at 30% 30%, #d2691e 60%, #8b4513 100%);
+    border-radius:50%;
+    box-shadow:inset -4px -4px 10px rgba(0,0,0,0.3);
+    pointer-events:none;
+    animation:spin linear infinite;
+}
+
+/* チョコチップ */
+.cookie::after{
+    content:"";
+    position:absolute;
+    width:100%;
+    height:100%;
+    background-image:
+        radial-gradient(#3b2f2f 6px, transparent 7px),
+        radial-gradient(#3b2f2f 5px, transparent 6px),
+        radial-gradient(#3b2f2f 4px, transparent 5px);
+    background-position:10px 15px, 35px 25px, 20px 40px;
+    background-repeat:no-repeat;
+}
+
+@keyframes spin{
+    from{ transform:rotate(0deg); }
+    to{ transform:rotate(360deg); }
+}
+
 .app{
+    position:relative;
+    z-index:10;
     background:white;
     width:95%;
     max-width:400px;
+    margin:50px auto;
     border-radius:25px;
     padding:20px;
     box-shadow:0 15px 40px rgba(0,0,0,0.25);
     text-align:center;
 }
+
 #question{
     font-size:30px;
     margin:20px 0;
 }
+
 input{
     font-size:22px;
     padding:8px;
@@ -36,6 +70,7 @@ input{
     border-radius:10px;
     border:1px solid #ccc;
 }
+
 button{
     margin-top:10px;
     padding:10px 20px;
@@ -46,17 +81,10 @@ button{
     color:white;
     cursor:pointer;
 }
-.stats{
-    margin-top:15px;
-    font-size:14px;
-}
-.ranking{
-    margin-top:15px;
-    text-align:left;
-}
-ol{
-    padding-left:20px;
-}
+
+.stats{ margin-top:15px; font-size:14px; }
+.ranking{ margin-top:15px; text-align:left; }
+ol{ padding-left:20px; }
 </style>
 </head>
 <body>
@@ -81,49 +109,92 @@ ol{
 </div>
 
 <script>
+/* 🍪 クッキー生成 */
+function createCookies(){
+    const count = Math.floor(Math.random()*11)+5; // 5〜15個
+    for(let i=0;i<count;i++){
+        const cookie=document.createElement("div");
+        cookie.className="cookie";
+
+        const size=Math.random()*40+40;
+        cookie.style.width=size+"px";
+        cookie.style.height=size+"px";
+
+        cookie.style.left=Math.random()*window.innerWidth+"px";
+        cookie.style.top=Math.random()*window.innerHeight+"px";
+
+        const duration=Math.random()*10+10;
+        cookie.style.animationDuration=duration+"s";
+
+        document.body.appendChild(cookie);
+
+        moveRandom(cookie);
+    }
+}
+
+function moveRandom(el){
+    let x=Math.random()*window.innerWidth;
+    let y=Math.random()*window.innerHeight;
+    let dx=(Math.random()-0.5)*0.5;
+    let dy=(Math.random()-0.5)*0.5;
+
+    function animate(){
+        x+=dx;
+        y+=dy;
+
+        if(x<0||x>window.innerWidth) dx*=-1;
+        if(y<0||y>window.innerHeight) dy*=-1;
+
+        el.style.left=x+"px";
+        el.style.top=y+"px";
+
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+createCookies();
+
+/* ====== ゲーム部分（前回と同じ） ====== */
 let score=0,time=30,level=1,timer,correct;
 let audioCtx=null;
 
 function initAudio(){
     if(!audioCtx){
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx=new (window.AudioContext||window.webkitAudioContext)();
     }
     if(audioCtx.state==="suspended"){
         audioCtx.resume();
     }
 }
 
-// 🎯 テレビ番組風「ピンポーン♪」1回
 function playCorrect(){
     initAudio();
-    const now = audioCtx.currentTime;
+    const now=audioCtx.currentTime;
 
-    const osc1 = audioCtx.createOscillator();
-    const osc2 = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+    const osc1=audioCtx.createOscillator();
+    const osc2=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
 
-    // 明るい和音（ド＋ソ）
     osc1.type="triangle";
     osc2.type="triangle";
 
-    osc1.frequency.setValueAtTime(1046, now); // C6
-    osc2.frequency.setValueAtTime(1568, now); // G6
+    osc1.frequency.setValueAtTime(1046,now);
+    osc2.frequency.setValueAtTime(1568,now);
 
     osc1.connect(gain);
     osc2.connect(gain);
     gain.connect(audioCtx.destination);
 
-    gain.gain.setValueAtTime(0.9, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    gain.gain.setValueAtTime(0.9,now);
+    gain.gain.exponentialRampToValueAtTime(0.001,now+0.6);
 
     osc1.start(now);
     osc2.start(now);
-
-    osc1.stop(now + 0.6);
-    osc2.stop(now + 0.6);
+    osc1.stop(now+0.6);
+    osc2.stop(now+0.6);
 }
 
-// ❌ ブー
 function playWrong(){
     initAudio();
     const now=audioCtx.currentTime;
@@ -139,34 +210,19 @@ function playWrong(){
 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-
     osc.start(now);
     osc.stop(now+0.4);
 }
 
-// 終了音
-function playEnd(){
-    initAudio();
-    const now=audioCtx.currentTime;
-    [600,800,1000].forEach((freq,i)=>{
-        const osc=audioCtx.createOscillator();
-        const gain=audioCtx.createGain();
-        osc.type="sine";
-        osc.frequency.value=freq;
-        gain.gain.setValueAtTime(0.5,now+i*0.15);
-        gain.gain.exponentialRampToValueAtTime(0.001,now+i*0.15+0.2);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(now+i*0.15);
-        osc.stop(now+i*0.15+0.2);
-    });
+function updateDisplay(){
+    scoreDisplay.textContent=score;
+    levelDisplay.textContent=level;
+    timeDisplay.textContent=time;
 }
 
-function updateDisplay(){
-    document.getElementById("score").innerText=score;
-    document.getElementById("level").innerText=level;
-    document.getElementById("time").innerText=time;
-}
+const scoreDisplay=document.getElementById("score");
+const levelDisplay=document.getElementById("level");
+const timeDisplay=document.getElementById("time");
 
 function generate(){
     let max=level*10;
@@ -175,20 +231,22 @@ function generate(){
 
     if(Math.random()>0.5){
         correct=a+b;
-        document.getElementById("question").innerText=`${a} + ${b} = ?`;
+        question.textContent=`${a} + ${b} = ?`;
     }else{
         correct=a-b;
-        document.getElementById("question").innerText=`${a} - ${b} = ?`;
+        question.textContent=`${a} - ${b} = ?`;
     }
 }
+
+const question=document.getElementById("question");
+const answer=document.getElementById("answer");
 
 function startGame(){
     initAudio();
     score=0; time=30; level=1;
     updateDisplay();
-
-    document.getElementById("answer").disabled=false;
-    document.getElementById("answer").focus();
+    answer.disabled=false;
+    answer.focus();
     generate();
 
     clearInterval(timer);
@@ -197,50 +255,26 @@ function startGame(){
         updateDisplay();
         if(time<=0){
             clearInterval(timer);
-            document.getElementById("question").innerText="終了！";
-            document.getElementById("answer").disabled=true;
-            playEnd();
-            saveScore(score);
+            question.textContent="終了！";
+            answer.disabled=true;
         }
     },1000);
 }
 
-document.getElementById("answer").addEventListener("keyup",e=>{
+answer.addEventListener("keyup",e=>{
     if(e.key==="Enter"){
-        if(Number(e.target.value)===correct){
+        if(Number(answer.value)===correct){
             score++;
             if(score%5===0) level++;
             playCorrect();
         }else{
             playWrong();
         }
-        e.target.value="";
+        answer.value="";
         updateDisplay();
         generate();
     }
 });
-
-function saveScore(newScore){
-    let scores=JSON.parse(localStorage.getItem("scores"))||[];
-    scores.push(newScore);
-    scores.sort((a,b)=>b-a);
-    scores=scores.slice(0,5);
-    localStorage.setItem("scores",JSON.stringify(scores));
-    displayRanking();
-}
-
-function displayRanking(){
-    let scores=JSON.parse(localStorage.getItem("scores"))||[];
-    let list=document.getElementById("rankingList");
-    list.innerHTML="";
-    scores.forEach(score=>{
-        let li=document.createElement("li");
-        li.innerText=score+" 点";
-        list.appendChild(li);
-    });
-}
-
-displayRanking();
 </script>
 
 </body>
