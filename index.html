@@ -24,9 +24,6 @@ body{
     box-shadow:0 15px 40px rgba(0,0,0,0.25);
     text-align:center;
 }
-h1{
-    margin-top:0;
-}
 #question{
     font-size:30px;
     margin:20px 0;
@@ -49,9 +46,6 @@ button{
     color:white;
     cursor:pointer;
 }
-button:active{
-    transform:scale(0.98);
-}
 .stats{
     margin-top:15px;
     font-size:14px;
@@ -59,9 +53,6 @@ button:active{
 .ranking{
     margin-top:15px;
     text-align:left;
-}
-.ranking h3{
-    margin-bottom:5px;
 }
 ol{
     padding-left:20px;
@@ -93,31 +84,79 @@ ol{
 let score=0,time=30,level=1,timer,correct;
 let audioCtx=null;
 
-// 🎵 効果音生成（iPhone完全対応）
-function playSound(type){
+// AudioContext初期化
+function initAudio(){
     if(!audioCtx){
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    if(type==="correct"){
-        oscillator.frequency.value = 880;
-    }else if(type==="wrong"){
-        oscillator.frequency.value = 180;
-    }else if(type==="end"){
-        oscillator.frequency.value = 500;
+    if(audioCtx.state === "suspended"){
+        audioCtx.resume();
     }
+}
 
-    oscillator.type = "sine";
-    gainNode.gain.value = 0.2;
+// 🔔 正解音「ピン・ポン」
+function playCorrect(){
+    initAudio();
+    const now = audioCtx.currentTime;
 
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.25);
+    // ピン
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(1000, now);
+    gain1.gain.setValueAtTime(0.7, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.25);
+
+    // ポン
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(1400, now + 0.18);
+    gain2.gain.setValueAtTime(0.7, now + 0.18);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(now + 0.18);
+    osc2.stop(now + 0.45);
+}
+
+// ❌ 不正解音「ブー」
+function playWrong(){
+    initAudio();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type="sawtooth";
+    osc.frequency.setValueAtTime(250,now);
+    osc.frequency.exponentialRampToValueAtTime(120,now+0.4);
+    gain.gain.setValueAtTime(0.5,now);
+    gain.gain.exponentialRampToValueAtTime(0.001,now+0.4);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now+0.4);
+}
+
+// 🎉 終了音
+function playEnd(){
+    initAudio();
+    const now = audioCtx.currentTime;
+    [600,800,1000].forEach((freq,i)=>{
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type="sine";
+        osc.frequency.value=freq;
+        gain.gain.setValueAtTime(0.5,now+i*0.15);
+        gain.gain.exponentialRampToValueAtTime(0.001,now+i*0.15+0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now+i*0.15);
+        osc.stop(now+i*0.15+0.2);
+    });
 }
 
 function updateDisplay(){
@@ -141,15 +180,9 @@ function generate(){
 }
 
 function startGame(){
-    score=0;
-    time=30;
-    level=1;
+    initAudio();
+    score=0; time=30; level=1;
     updateDisplay();
-
-    // iPhone音声ロック解除
-    if(!audioCtx){
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
 
     document.getElementById("answer").disabled=false;
     document.getElementById("answer").focus();
@@ -159,12 +192,11 @@ function startGame(){
     timer=setInterval(()=>{
         time--;
         updateDisplay();
-
         if(time<=0){
             clearInterval(timer);
             document.getElementById("question").innerText="終了！";
             document.getElementById("answer").disabled=true;
-            playSound("end");
+            playEnd();
             saveScore(score);
         }
     },1000);
@@ -175,9 +207,9 @@ document.getElementById("answer").addEventListener("keyup",e=>{
         if(Number(e.target.value)===correct){
             score++;
             if(score%5===0) level++;
-            playSound("correct");
+            playCorrect();
         }else{
-            playSound("wrong");
+            playWrong();
         }
         e.target.value="";
         updateDisplay();
