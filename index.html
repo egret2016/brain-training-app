@@ -2,63 +2,59 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#4facfe"/>
-<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>脳トレ高速アプリ</title>
 
 <style>
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-    background: linear-gradient(180deg,#4facfe,#00f2fe);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+    background:linear-gradient(180deg,#4facfe,#00f2fe);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
 }
-
-.app {
-    background: white;
-    width: 95%;
-    max-width: 400px;
-    border-radius: 25px;
-    padding: 25px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-    text-align: center;
+.app{
+    background:white;
+    width:95%;
+    max-width:400px;
+    border-radius:25px;
+    padding:20px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.25);
+    text-align:center;
 }
-
-h1 {
-    margin-top: 0;
+#question{
+    font-size:30px;
+    margin:20px 0;
 }
-
-#question {
-    font-size: 32px;
-    margin: 25px 0;
+input{
+    font-size:22px;
+    padding:8px;
+    width:120px;
+    text-align:center;
+    border-radius:10px;
+    border:1px solid #ccc;
 }
-
-input {
-    font-size: 24px;
-    padding: 10px;
-    width: 120px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    text-align: center;
+button{
+    margin-top:10px;
+    padding:10px 20px;
+    font-size:16px;
+    border:none;
+    border-radius:12px;
+    background:#4facfe;
+    color:white;
 }
-
-button {
-    margin-top: 15px;
-    padding: 12px 20px;
-    font-size: 18px;
-    border: none;
-    border-radius: 15px;
-    background: #4facfe;
-    color: white;
+.stats{
+    margin-top:15px;
+    font-size:14px;
 }
-
-.stats {
-    margin-top: 20px;
-    font-size: 15px;
+.ranking{
+    margin-top:15px;
+    text-align:left;
+}
+.ranking h3{
+    margin-bottom:5px;
 }
 </style>
 </head>
@@ -73,25 +69,42 @@ button {
 
     <div class="stats">
         ⏱ <span id="time">30</span>秒  
-        ⭐ <span id="score">0</span>  
+        ⭐ スコア: <span id="score">0</span>  
         🚀 Lv.<span id="level">1</span>
+    </div>
+
+    <div class="ranking">
+        <h3>🏆 ランキング TOP5</h3>
+        <ol id="rankingList"></ol>
     </div>
 </div>
 
 <script>
 let score=0,time=30,level=1,timer,correct;
 
+function updateDisplay(){
+    document.getElementById("score").innerText=score;
+    document.getElementById("level").innerText=level;
+    document.getElementById("time").innerText=time;
+}
+
 function generate(){
     let max=level*10;
     let a=Math.floor(Math.random()*max)+1;
     let b=Math.floor(Math.random()*max)+1;
-    correct=Math.random()>0.5?a+b:a-b;
-    document.getElementById("question").innerText=
-        Math.random()>0.5?`${a} + ${b} = ?`:`${a} - ${b} = ?`;
+
+    if(Math.random()>0.5){
+        correct=a+b;
+        document.getElementById("question").innerText=`${a} + ${b} = ?`;
+    }else{
+        correct=a-b;
+        document.getElementById("question").innerText=`${a} - ${b} = ?`;
+    }
 }
 
 function startGame(){
     score=0;time=30;level=1;
+    updateDisplay();
     document.getElementById("answer").disabled=false;
     document.getElementById("answer").focus();
     generate();
@@ -99,11 +112,12 @@ function startGame(){
     clearInterval(timer);
     timer=setInterval(()=>{
         time--;
-        document.getElementById("time").innerText=time;
+        updateDisplay();
         if(time<=0){
             clearInterval(timer);
             document.getElementById("question").innerText="終了！";
             document.getElementById("answer").disabled=true;
+            saveScore(score);
         }
     },1000);
 }
@@ -113,13 +127,34 @@ document.getElementById("answer").addEventListener("keyup",e=>{
         if(Number(e.target.value)===correct){
             score++;
             if(score%5===0) level++;
-            document.getElementById("score").innerText=score;
-            document.getElementById("level").innerText=level;
         }
         e.target.value="";
+        updateDisplay();
         generate();
     }
 });
+
+function saveScore(newScore){
+    let scores=JSON.parse(localStorage.getItem("scores"))||[];
+    scores.push(newScore);
+    scores.sort((a,b)=>b-a);
+    scores=scores.slice(0,5);
+    localStorage.setItem("scores",JSON.stringify(scores));
+    displayRanking();
+}
+
+function displayRanking(){
+    let scores=JSON.parse(localStorage.getItem("scores"))||[];
+    let list=document.getElementById("rankingList");
+    list.innerHTML="";
+    scores.forEach(score=>{
+        let li=document.createElement("li");
+        li.innerText=score+" 点";
+        list.appendChild(li);
+    });
+}
+
+displayRanking();
 </script>
 
 </body>
