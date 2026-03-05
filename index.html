@@ -2,335 +2,220 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>脳トレ高速アプリ</title>
-
+<title>脳トレ計算ゲーム</title>
 <style>
-html,body{
-    margin:0;
-    padding:0;
-    height:100%;
-    font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
-    background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
-    overflow:hidden;
+body{
+margin:0;
+font-family:sans-serif;
+overflow:hidden;
+background:linear-gradient(135deg,#5f9cff,#a5d6ff);
+color:white;
+text-align:center;
 }
 
-/* 赤フラッシュ */
-.flash{ animation:flashRed 0.3s; }
-@keyframes flashRed{
-    0%{background:rgba(255,0,0,0.4);}
-    100%{background:transparent;}
+#game{
+position:relative;
+z-index:2;
+margin-top:100px;
 }
 
-/* 揺れ */
-.shake{ animation:shake 0.3s; }
-@keyframes shake{
-    0%{transform:translateX(0);}
-    25%{transform:translateX(-10px);}
-    50%{transform:translateX(10px);}
-    75%{transform:translateX(-10px);}
-    100%{transform:translateX(0);}
+#score,#timer{
+font-size:28px;
+margin:10px;
 }
 
-/* キラキラ */
-.sparkle{
-    position:fixed;
-    font-size:22px;
-    pointer-events:none;
-    animation:fly 1s ease-out forwards;
-    z-index:20;
-}
-@keyframes fly{
-    0%{opacity:1;transform:translate(0,0) scale(1);}
-    100%{opacity:0;transform:translate(var(--x),var(--y)) scale(0.5);}
+input{
+font-size:24px;
+padding:10px;
+width:120px;
+text-align:center;
+border-radius:10px;
+border:none;
 }
 
-/* クッキー */
+button{
+font-size:22px;
+padding:10px 20px;
+margin:10px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+}
+
 .cookie{
-    position:fixed;
-    border-radius:50%;
-    pointer-events:none;
-    animation:spin linear infinite;
-    z-index:0;
-}
-.cookie::after{
-    content:"";
-    position:absolute;
-    width:100%;
-    height:100%;
-    background-image:
-        radial-gradient(#3b2f2f 5px, transparent 6px),
-        radial-gradient(#3b2f2f 4px, transparent 5px),
-        radial-gradient(#3b2f2f 6px, transparent 7px);
-    background-position:10px 15px, 35px 25px, 20px 40px;
-    background-repeat:no-repeat;
-}
-@keyframes spin{
-    from{transform:rotate(0deg);}
-    to{transform:rotate(360deg);}
+position:absolute;
+width:60px;
+height:60px;
+border-radius:50%;
+animation:spin 6s linear infinite;
+z-index:0;
 }
 
-/* 隠れロボ */
-.hidden-bot{
-    position:fixed;
-    width:70px;
-    height:70px;
-    background:#2da9ff;
-    border-radius:50%;
-    box-shadow:0 0 20px rgba(0,0,255,0.6);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:32px;
-    cursor:pointer;
-    z-index:5;
-    animation:float 2s infinite ease-in-out;
-}
-@keyframes float{
-    0%{transform:translateY(0);}
-    50%{transform:translateY(-10px);}
-    100%{transform:translateY(0);}
+.choco{background:#d89b55;}
+.white{background:#f3e5ab;}
+
+.chip{position:absolute;width:8px;height:8px;background:#3b2b1a;border-radius:50%;}
+.whiteChip{position:absolute;width:8px;height:8px;background:white;border-radius:50%;}
+
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+.sparkle{
+position:absolute;font-size:25px;animation:spark 1s forwards;
 }
 
-/* UI */
-.app{
-    position:relative;
-    z-index:10;
-    background:white;
-    width:95%;
-    max-width:400px;
-    margin:40px auto;
-    border-radius:25px;
-    padding:20px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.25);
-    text-align:center;
+@keyframes spark{0%{opacity:1}100%{opacity:0;transform:scale(2)}}
+
+.explosion{
+position:absolute;font-size:35px;animation:boom 0.7s forwards;
 }
-#question{font-size:28px;margin:20px 0;}
-input{font-size:22px;padding:8px;width:120px;text-align:center;border-radius:10px;border:1px solid #ccc;}
-button{margin-top:10px;padding:10px 20px;font-size:16px;border:none;border-radius:12px;background:#4facfe;color:white;cursor:pointer;}
-.stats{margin-top:15px;font-size:14px;}
-.ranking{margin-top:15px;text-align:left;}
-ol{padding-left:20px;}
+
+@keyframes boom{0%{transform:scale(1)}100%{transform:scale(3);opacity:0}}
+
+#ranking{position:absolute;top:10px;right:10px;}
+#doraemon{position:absolute;bottom:20px;right:20px;font-size:40px;cursor:pointer;opacity:0.2;}
 </style>
 </head>
 <body>
 
-<div class="app" id="appBox">
-<h1>🧠 脳トレ</h1>
-<div id="question">スタートを押してください</div>
-<input type="number" id="answer" disabled>
+<div id="ranking">
+<h3>🏆ランキング</h3>
+<ol id="rankList"></ol>
+</div>
+
+<div id="game">
+<h1>🧠脳トレ計算</h1>
+<div id="score">スコア:0</div>
+<div id="timer">残り時間:30</div>
+<h2 id="question"></h2>
+<input id="answer" type="number" disabled>
 <br>
-<button onclick="startGame()">スタート</button>
-<div class="stats">
-⏱ <span id="time">30</span>秒  
-⭐ <span id="score">0</span>点  
-🚀 Lv.<span id="level">1</span>
+<button id="startBtn">スタート</button>
 </div>
-<div class="ranking">
-<h3>🏆 ランキング TOP5</h3>
-<ol id="rankingList"></ol>
-</div>
-</div>
+
+<div id="doraemon">🐱</div>
 
 <script>
-/* ===== クッキー ===== */
-function createCookies(){
-    const count=Math.floor(Math.random()*11)+5;
-    for(let i=0;i<count;i++){
-        const c=document.createElement("div");
-        c.className="cookie";
-        const size=Math.random()*40+40;
-        c.style.width=size+"px";
-        c.style.height=size+"px";
-        c.style.background="radial-gradient(circle at 30% 30%, #d2691e 60%, #8b4513 100%)";
-        c.style.left=Math.random()*window.innerWidth+"px";
-        c.style.top=Math.random()*window.innerHeight+"px";
-        c.style.animationDuration=(Math.random()*10+10)+"s";
-        document.body.appendChild(c);
-        moveRandom(c);
-    }
-}
-function moveRandom(el){
-    let x=Math.random()*window.innerWidth;
-    let y=Math.random()*window.innerHeight;
-    let dx=(Math.random()-0.5)*0.6;
-    let dy=(Math.random()-0.5)*0.6;
-    function animate(){
-        x+=dx;y+=dy;
-        if(x<0||x>window.innerWidth)dx*=-1;
-        if(y<0||y>window.innerHeight)dy*=-1;
-        el.style.left=x+"px";
-        el.style.top=y+"px";
-        requestAnimationFrame(animate);
-    }
-    animate();
-}
-createCookies();
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+let score=0,time=30,a,b,correct,timer=null;
 
-/* ===== キラキラ ===== */
-function sparkleEffect(){
-    for(let i=0;i<15;i++){
-        const s=document.createElement("div");
-        s.className="sparkle";
-        s.textContent="✨";
-        s.style.left=window.innerWidth/2+"px";
-        s.style.top=window.innerHeight/2+"px";
-        s.style.setProperty("--x",(Math.random()*400-200)+"px");
-        s.style.setProperty("--y",(Math.random()*400-200)+"px");
-        document.body.appendChild(s);
-        setTimeout(()=>s.remove(),1000);
-    }
+const questionEl=document.getElementById("question");
+const scoreEl=document.getElementById("score");
+const timerEl=document.getElementById("timer");
+const answerInput=document.getElementById("answer");
+const startBtn=document.getElementById("startBtn");
+
+// 音
+function correctSound(){
+let osc1=ctx.createOscillator();
+let osc2=ctx.createOscillator();
+let gain=ctx.createGain();
+osc1.frequency.value=1000;
+osc2.frequency.value=1400;
+osc1.type="sine"; osc2.type="sine";
+osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
+osc1.start(); osc2.start();
+gain.gain.setValueAtTime(0.3,ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+1);
+osc1.stop(ctx.currentTime+1); osc2.stop(ctx.currentTime+1);
+}
+function wrongSound(){
+let osc=ctx.createOscillator();
+let gain=ctx.createGain();
+osc.type="square"; osc.frequency.value=200;
+osc.connect(gain); gain.connect(ctx.destination);
+osc.start();
+gain.gain.setValueAtTime(0.3,ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
+osc.stop(ctx.currentTime+0.6);
+}
+function endSound(){
+let osc=ctx.createOscillator();
+let gain=ctx.createGain();
+osc.type="triangle"; osc.frequency.value=800;
+osc.connect(gain); gain.connect(ctx.destination);
+osc.start();
+gain.gain.setValueAtTime(0.3,ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
+osc.stop(ctx.currentTime+0.5);
 }
 
-/* ===== 間違い演出 ===== */
-function wrongEffect(){
-    document.body.classList.add("flash");
-    document.getElementById("appBox").classList.add("shake");
-    setTimeout(()=>{
-        document.body.classList.remove("flash");
-        document.getElementById("appBox").classList.remove("shake");
-    },300);
+// クッキー
+function createCookie(){
+let cookie=document.createElement("div");
+let type=Math.random()<0.5?"choco":"white";
+cookie.className="cookie "+type;
+cookie.style.left=Math.random()*window.innerWidth+"px";
+cookie.style.top=Math.random()*window.innerHeight+"px";
+for(let i=0;i<6;i++){
+let chip=document.createElement("div");
+chip.className=type==="choco"?"chip":"whiteChip";
+chip.style.left=(Math.random()*40+10)+"px";
+chip.style.top=(Math.random()*40+10)+"px";
+cookie.appendChild(chip);
 }
-
-/* ===== 隠れロボ ===== */
-function spawnHiddenBot(){
-    const bot=document.createElement("div");
-    bot.className="hidden-bot";
-    bot.textContent="🤖";
-    bot.style.left=Math.random()*(window.innerWidth-80)+"px";
-    bot.style.top=Math.random()*(window.innerHeight-80)+"px";
-    bot.onclick=function(){
-        score+=5;
-        updateDisplay();
-        bot.remove();
-    };
-    document.body.appendChild(bot);
-    setTimeout(()=>bot.remove(),8000);
+document.body.appendChild(cookie);
+moveCookie(cookie);
 }
-setInterval(spawnHiddenBot,15000);
-
-/* ===== ゲーム ===== */
-let score=0,time=30,level=1,timer,correct;
-let audioCtx=null;
-
-function initAudio(){
-    if(!audioCtx){
-        audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    }
-    if(audioCtx.state==="suspended")audioCtx.resume();
+function moveCookie(c){
+setInterval(()=>{
+c.style.left=Math.random()*window.innerWidth+"px";
+c.style.top=Math.random()*window.innerHeight+"px";
+},6000);
 }
-
-/* 🎯 クイズ番組風 ピンポン */
-function playCorrect(){
-    initAudio();
-    const now = audioCtx.currentTime;
-
-    // ピン
-    const osc1 = audioCtx.createOscillator();
-    const gain1 = audioCtx.createGain();
-    osc1.type = "triangle";
-    osc1.frequency.setValueAtTime(988, now);
-    gain1.gain.setValueAtTime(1.0, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-    osc1.connect(gain1);
-    gain1.connect(audioCtx.destination);
-    osc1.start(now);
-    osc1.stop(now + 0.18);
-
-    // ポーン（和音）
-    const osc2 = audioCtx.createOscillator();
-    const osc3 = audioCtx.createOscillator();
-    const gain2 = audioCtx.createGain();
-    osc2.type = "triangle";
-    osc3.type = "triangle";
-    osc2.frequency.setValueAtTime(1318, now + 0.18);
-    osc3.frequency.setValueAtTime(1568, now + 0.18);
-    gain2.gain.setValueAtTime(0.9, now + 0.18);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
-    osc2.connect(gain2);
-    osc3.connect(gain2);
-    gain2.connect(audioCtx.destination);
-    osc2.start(now + 0.18);
-    osc3.start(now + 0.18);
-    osc2.stop(now + 1.0);
-    osc3.stop(now + 1.0);
-}
-
-function playWrong(){
-    initAudio();
-    const now=audioCtx.currentTime;
-    const o=audioCtx.createOscillator();
-    const g=audioCtx.createGain();
-    o.type="sawtooth";
-    o.frequency.setValueAtTime(250,now);
-    o.frequency.exponentialRampToValueAtTime(120,now+0.4);
-    g.gain.setValueAtTime(0.6,now);
-    g.gain.exponentialRampToValueAtTime(0.001,now+0.4);
-    o.connect(g);g.connect(audioCtx.destination);
-    o.start(now);o.stop(now+0.4);
-}
-
-function updateDisplay(){
-    scoreDisplay.textContent=score;
-    levelDisplay.textContent=level;
-    timeDisplay.textContent=time;
-}
-
-const scoreDisplay=document.getElementById("score");
-const levelDisplay=document.getElementById("level");
-const timeDisplay=document.getElementById("time");
-const question=document.getElementById("question");
-const answer=document.getElementById("answer");
-
-function generate(){
-    let max=level*10;
-    let a=Math.floor(Math.random()*max)+1;
-    let b=Math.floor(Math.random()*max)+1;
-    if(Math.random()>0.5){
-        correct=a+b;
-        question.textContent=`${a} + ${b} = ?`;
-    }else{
-        correct=a-b;
-        question.textContent=`${a} - ${b} = ?`;
-    }
-}
-
-function startGame(){
-    initAudio();
-    score=0;time=30;level=1;
-    updateDisplay();
-    answer.disabled=false;
-    answer.focus();
-    generate();
-    clearInterval(timer);
-    timer=setInterval(()=>{
-        time--;
-        updateDisplay();
-        if(time<=0){
-            clearInterval(timer);
-            question.textContent="終了！";
-            answer.disabled=true;
-        }
-    },1000);
-}
-
-answer.addEventListener("keyup",e=>{
-    if(e.key==="Enter"){
-        if(Number(answer.value)===correct){
-            score++;
-            if(score%5===0)level++;
-            playCorrect();
-            sparkleEffect();
-        }else{
-            playWrong();
-            wrongEffect();
-        }
-        answer.value="";
-        updateDisplay();
-        generate();
-    }
+function spawnCookies(n){for(let i=0;i<n;i++) createCookie();}
+function explodeCookies(){
+document.querySelectorAll(".cookie").forEach(c=>{
+let e=document.createElement("div");
+e.className="explosion"; e.innerText="💥";
+e.style.left=c.style.left; e.style.top=c.style.top;
+document.body.appendChild(e); setTimeout(()=>e.remove(),700);
+c.remove();
 });
-</script>
+}
+function sparkle(){for(let i=0;i<8;i++){let s=document.createElement("div");s.className="sparkle";s.innerText="✨";s.style.left=Math.random()*window.innerWidth+"px";s.style.top=Math.random()*window.innerHeight+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),1000);}}
 
+// 問題生成
+function newQuestion(){a=Math.floor(Math.random()*10); b=Math.floor(Math.random()*10); correct=a+b; questionEl.innerText=`${a} + ${b} = ?`; answerInput.value="";}
+
+// 回答判定
+function submitAnswer(){
+let val=parseInt(answerInput.value);
+if(val===correct){
+score++; scoreEl.innerText="スコア:"+score;
+correctSound(); sparkle(); spawnCookies(3);
+}else{ wrongSound(); explodeCookies(); }
+newQuestion();
+}
+
+// ランキング
+function loadRanking(){
+let data=JSON.parse(localStorage.getItem("rank")||"[]");
+data.push(score); data.sort((a,b)=>b-a); data=data.slice(0,5);
+localStorage.setItem("rank",JSON.stringify(data));
+let list=document.getElementById("rankList"); list.innerHTML="";
+data.forEach(s=>{let li=document.createElement("li"); li.innerText=s; list.appendChild(li);});
+}
+
+// ドラえもんボーナス
+document.getElementById("doraemon").onclick=()=>{
+alert("ぼくドラえもん！"); score+=5; scoreEl.innerText="スコア:"+score;
+}
+
+// スタート
+startBtn.onclick=function(){
+score=0; time=30; scoreEl.innerText="スコア:0"; timerEl.innerText="残り時間:30";
+answerInput.disabled=false; answerInput.focus();
+spawnCookies(6); newQuestion();
+if(timer) clearInterval(timer);
+timer=setInterval(()=>{
+time--; timerEl.innerText="残り時間:"+time;
+if(time<=0){clearInterval(timer); answerInput.disabled=true; endSound(); alert("終了！スコア:"+score); loadRanking();}
+},1000);
+}
+
+// Enterキーでも回答
+answerInput.addEventListener("keyup",e=>{if(e.key==="Enter") submitAnswer();})
+
+</script>
 </body>
 </html>
