@@ -15,7 +15,37 @@ html,body{
     overflow:hidden;
 }
 
-/* 🍪 クッキー */
+/* 赤フラッシュ */
+.flash{ animation:flashRed 0.3s; }
+@keyframes flashRed{
+    0%{background:rgba(255,0,0,0.4);}
+    100%{background:transparent;}
+}
+
+/* 揺れ */
+.shake{ animation:shake 0.3s; }
+@keyframes shake{
+    0%{transform:translateX(0);}
+    25%{transform:translateX(-10px);}
+    50%{transform:translateX(10px);}
+    75%{transform:translateX(-10px);}
+    100%{transform:translateX(0);}
+}
+
+/* キラキラ */
+.sparkle{
+    position:fixed;
+    font-size:22px;
+    pointer-events:none;
+    animation:fly 1s ease-out forwards;
+    z-index:20;
+}
+@keyframes fly{
+    0%{opacity:1;transform:translate(0,0) scale(1);}
+    100%{opacity:0;transform:translate(var(--x),var(--y)) scale(0.5);}
+}
+
+/* クッキー */
 .cookie{
     position:fixed;
     border-radius:50%;
@@ -23,7 +53,6 @@ html,body{
     animation:spin linear infinite;
     z-index:0;
 }
-
 .cookie::after{
     content:"";
     position:absolute;
@@ -36,13 +65,12 @@ html,body{
     background-position:10px 15px, 35px 25px, 20px 40px;
     background-repeat:no-repeat;
 }
-
 @keyframes spin{
     from{transform:rotate(0deg);}
     to{transform:rotate(360deg);}
 }
 
-/* 🤖 隠れロボ */
+/* 隠れロボ */
 .hidden-bot{
     position:fixed;
     width:70px;
@@ -58,14 +86,13 @@ html,body{
     z-index:5;
     animation:float 2s infinite ease-in-out;
 }
-
 @keyframes float{
     0%{transform:translateY(0);}
     50%{transform:translateY(-10px);}
     100%{transform:translateY(0);}
 }
 
-/* アプリUI */
+/* UI */
 .app{
     position:relative;
     z-index:10;
@@ -78,29 +105,9 @@ html,body{
     box-shadow:0 15px 40px rgba(0,0,0,0.25);
     text-align:center;
 }
-
 #question{font-size:28px;margin:20px 0;}
-
-input{
-    font-size:22px;
-    padding:8px;
-    width:120px;
-    text-align:center;
-    border-radius:10px;
-    border:1px solid #ccc;
-}
-
-button{
-    margin-top:10px;
-    padding:10px 20px;
-    font-size:16px;
-    border:none;
-    border-radius:12px;
-    background:#4facfe;
-    color:white;
-    cursor:pointer;
-}
-
+input{font-size:22px;padding:8px;width:120px;text-align:center;border-radius:10px;border:1px solid #ccc;}
+button{margin-top:10px;padding:10px 20px;font-size:16px;border:none;border-radius:12px;background:#4facfe;color:white;cursor:pointer;}
 .stats{margin-top:15px;font-size:14px;}
 .ranking{margin-top:15px;text-align:left;}
 ol{padding-left:20px;}
@@ -108,58 +115,50 @@ ol{padding-left:20px;}
 </head>
 <body>
 
-<div class="app">
-    <h1>🧠 脳トレ</h1>
-    <div id="question">スタートを押してください</div>
-    <input type="number" id="answer" disabled>
-    <br>
-    <button onclick="startGame()">スタート</button>
-
-    <div class="stats">
-        ⏱ <span id="time">30</span>秒  
-        ⭐ <span id="score">0</span>点  
-        🚀 Lv.<span id="level">1</span>
-    </div>
-
-    <div class="ranking">
-        <h3>🏆 ランキング TOP5</h3>
-        <ol id="rankingList"></ol>
-    </div>
+<div class="app" id="appBox">
+<h1>🧠 脳トレ</h1>
+<div id="question">スタートを押してください</div>
+<input type="number" id="answer" disabled>
+<br>
+<button onclick="startGame()">スタート</button>
+<div class="stats">
+⏱ <span id="time">30</span>秒  
+⭐ <span id="score">0</span>点  
+🚀 Lv.<span id="level">1</span>
+</div>
+<div class="ranking">
+<h3>🏆 ランキング TOP5</h3>
+<ol id="rankingList"></ol>
+</div>
 </div>
 
 <script>
-/* 🍪 クッキー生成 */
+/* ===== クッキー ===== */
 function createCookies(){
     const count=Math.floor(Math.random()*11)+5;
     for(let i=0;i<count;i++){
-        const cookie=document.createElement("div");
-        cookie.className="cookie";
-
+        const c=document.createElement("div");
+        c.className="cookie";
         const size=Math.random()*40+40;
-        cookie.style.width=size+"px";
-        cookie.style.height=size+"px";
-        cookie.style.background="radial-gradient(circle at 30% 30%, #d2691e 60%, #8b4513 100%)";
-
-        cookie.style.left=Math.random()*window.innerWidth+"px";
-        cookie.style.top=Math.random()*window.innerHeight+"px";
-
-        cookie.style.animationDuration=(Math.random()*10+10)+"s";
-
-        document.body.appendChild(cookie);
-        moveRandom(cookie);
+        c.style.width=size+"px";
+        c.style.height=size+"px";
+        c.style.background="radial-gradient(circle at 30% 30%, #d2691e 60%, #8b4513 100%)";
+        c.style.left=Math.random()*window.innerWidth+"px";
+        c.style.top=Math.random()*window.innerHeight+"px";
+        c.style.animationDuration=(Math.random()*10+10)+"s";
+        document.body.appendChild(c);
+        moveRandom(c);
     }
 }
-
 function moveRandom(el){
     let x=Math.random()*window.innerWidth;
     let y=Math.random()*window.innerHeight;
     let dx=(Math.random()-0.5)*0.6;
     let dy=(Math.random()-0.5)*0.6;
-
     function animate(){
-        x+=dx; y+=dy;
-        if(x<0||x>window.innerWidth) dx*=-1;
-        if(y<0||y>window.innerHeight) dy*=-1;
+        x+=dx;y+=dy;
+        if(x<0||x>window.innerWidth)dx*=-1;
+        if(y<0||y>window.innerHeight)dy*=-1;
         el.style.left=x+"px";
         el.style.top=y+"px";
         requestAnimationFrame(animate);
@@ -168,27 +167,49 @@ function moveRandom(el){
 }
 createCookies();
 
-/* 🤖 隠れロボ */
+/* ===== キラキラ ===== */
+function sparkleEffect(){
+    for(let i=0;i<15;i++){
+        const s=document.createElement("div");
+        s.className="sparkle";
+        s.textContent="✨";
+        s.style.left=window.innerWidth/2+"px";
+        s.style.top=window.innerHeight/2+"px";
+        s.style.setProperty("--x",(Math.random()*400-200)+"px");
+        s.style.setProperty("--y",(Math.random()*400-200)+"px");
+        document.body.appendChild(s);
+        setTimeout(()=>s.remove(),1000);
+    }
+}
+
+/* ===== 間違い演出 ===== */
+function wrongEffect(){
+    document.body.classList.add("flash");
+    document.getElementById("appBox").classList.add("shake");
+    setTimeout(()=>{
+        document.body.classList.remove("flash");
+        document.getElementById("appBox").classList.remove("shake");
+    },300);
+}
+
+/* ===== 隠れロボ ===== */
 function spawnHiddenBot(){
     const bot=document.createElement("div");
     bot.className="hidden-bot";
     bot.textContent="🤖";
-
     bot.style.left=Math.random()*(window.innerWidth-80)+"px";
     bot.style.top=Math.random()*(window.innerHeight-80)+"px";
-
     bot.onclick=function(){
         score+=5;
         updateDisplay();
         bot.remove();
     };
-
     document.body.appendChild(bot);
     setTimeout(()=>bot.remove(),8000);
 }
 setInterval(spawnHiddenBot,15000);
 
-/* ===== ゲーム部分 ===== */
+/* ===== ゲーム ===== */
 let score=0,time=30,level=1,timer,correct;
 let audioCtx=null;
 
@@ -196,72 +217,57 @@ function initAudio(){
     if(!audioCtx){
         audioCtx=new(window.AudioContext||window.webkitAudioContext)();
     }
-    if(audioCtx.state==="suspended") audioCtx.resume();
+    if(audioCtx.state==="suspended")audioCtx.resume();
 }
 
-/* 正解音 ピンポーン♪ */
+/* 🎯 クイズ番組風 ピンポン */
 function playCorrect(){
     initAudio();
-    const now=audioCtx.currentTime;
-    const osc1=audioCtx.createOscillator();
-    const osc2=audioCtx.createOscillator();
-    const gain=audioCtx.createGain();
+    const now = audioCtx.currentTime;
 
-    osc1.type="triangle";
-    osc2.type="triangle";
-    osc1.frequency.value=1046;
-    osc2.frequency.value=1568;
-
-    osc1.connect(gain);
-    osc2.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    gain.gain.setValueAtTime(0.9,now);
-    gain.gain.exponentialRampToValueAtTime(0.001,now+0.6);
-
+    // ピン
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = "triangle";
+    osc1.frequency.setValueAtTime(988, now);
+    gain1.gain.setValueAtTime(1.0, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
     osc1.start(now);
-    osc2.start(now);
-    osc1.stop(now+0.6);
-    osc2.stop(now+0.6);
+    osc1.stop(now + 0.18);
+
+    // ポーン（和音）
+    const osc2 = audioCtx.createOscillator();
+    const osc3 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = "triangle";
+    osc3.type = "triangle";
+    osc2.frequency.setValueAtTime(1318, now + 0.18);
+    osc3.frequency.setValueAtTime(1568, now + 0.18);
+    gain2.gain.setValueAtTime(0.9, now + 0.18);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+    osc2.connect(gain2);
+    osc3.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(now + 0.18);
+    osc3.start(now + 0.18);
+    osc2.stop(now + 1.0);
+    osc3.stop(now + 1.0);
 }
 
-/* 不正解 */
 function playWrong(){
     initAudio();
     const now=audioCtx.currentTime;
-    const osc=audioCtx.createOscillator();
-    const gain=audioCtx.createGain();
-
-    osc.type="sawtooth";
-    osc.frequency.setValueAtTime(250,now);
-    osc.frequency.exponentialRampToValueAtTime(120,now+0.4);
-
-    gain.gain.setValueAtTime(0.6,now);
-    gain.gain.exponentialRampToValueAtTime(0.001,now+0.4);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(now);
-    osc.stop(now+0.4);
-}
-
-/* 終了音 未来ガジェット風 */
-function playEnd(){
-    initAudio();
-    const now=audioCtx.currentTime;
-    const notes=[523,659,784,1046];
-    notes.forEach((f,i)=>{
-        const osc=audioCtx.createOscillator();
-        const gain=audioCtx.createGain();
-        osc.type="triangle";
-        osc.frequency.value=f;
-        gain.gain.setValueAtTime(0.7,now+i*0.15);
-        gain.gain.exponentialRampToValueAtTime(0.001,now+i*0.15+0.4);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(now+i*0.15);
-        osc.stop(now+i*0.15+0.4);
-    });
+    const o=audioCtx.createOscillator();
+    const g=audioCtx.createGain();
+    o.type="sawtooth";
+    o.frequency.setValueAtTime(250,now);
+    o.frequency.exponentialRampToValueAtTime(120,now+0.4);
+    g.gain.setValueAtTime(0.6,now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.4);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start(now);o.stop(now+0.4);
 }
 
 function updateDisplay(){
@@ -291,12 +297,11 @@ function generate(){
 
 function startGame(){
     initAudio();
-    score=0; time=30; level=1;
+    score=0;time=30;level=1;
     updateDisplay();
     answer.disabled=false;
     answer.focus();
     generate();
-
     clearInterval(timer);
     timer=setInterval(()=>{
         time--;
@@ -305,8 +310,6 @@ function startGame(){
             clearInterval(timer);
             question.textContent="終了！";
             answer.disabled=true;
-            playEnd();
-            saveScore(score);
         }
     },1000);
 }
@@ -315,38 +318,18 @@ answer.addEventListener("keyup",e=>{
     if(e.key==="Enter"){
         if(Number(answer.value)===correct){
             score++;
-            if(score%5===0) level++;
+            if(score%5===0)level++;
             playCorrect();
+            sparkleEffect();
         }else{
             playWrong();
+            wrongEffect();
         }
         answer.value="";
         updateDisplay();
         generate();
     }
 });
-
-/* ランキング */
-function saveScore(newScore){
-    let scores=JSON.parse(localStorage.getItem("scores"))||[];
-    scores.push(newScore);
-    scores.sort((a,b)=>b-a);
-    scores=scores.slice(0,5);
-    localStorage.setItem("scores",JSON.stringify(scores));
-    displayRanking();
-}
-
-function displayRanking(){
-    let scores=JSON.parse(localStorage.getItem("scores"))||[];
-    let list=document.getElementById("rankingList");
-    list.innerHTML="";
-    scores.forEach(s=>{
-        let li=document.createElement("li");
-        li.textContent=s+" 点";
-        list.appendChild(li);
-    });
-}
-displayRanking();
 </script>
 
 </body>
