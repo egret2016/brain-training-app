@@ -6,84 +6,29 @@
 <title>脳トレ計算ゲーム</title>
 <style>
 html,body{
-margin:0;
-padding:0;
-height:100%;
-width:100%;
-font-family:sans-serif;
-overflow:hidden;
+margin:0;padding:0;height:100%;width:100%;
+font-family:sans-serif;overflow:hidden;
 background:linear-gradient(to bottom right,#4facfe,#00f2fe);
-display:flex;
-justify-content:center;
-align-items:center;
-color:white;
+display:flex;justify-content:center;align-items:center;color:white;
 }
-
 #gameContainer{
-width:95%;
-max-width:400px;
-text-align:center;
-position:relative;
-z-index:2;
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(5px);
-border-radius:20px;
-padding:20px;
-box-shadow:0 10px 30px rgba(0,0,0,0.2);
+width:95%;max-width:400px;text-align:center;position:relative;z-index:2;
+background:rgba(255,255,255,0.05);backdrop-filter:blur(5px);
+border-radius:20px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
-
-#score,#timer{
-font-size:26px;
-margin:8px 0;
-}
-
-input{
-font-size:22px;
-padding:10px;
-width:120px;
-text-align:center;
-border-radius:10px;
-border:none;
-}
-
-button{
-font-size:20px;
-padding:10px 20px;
-margin:10px;
-border:none;
-border-radius:10px;
-cursor:pointer;
-}
-
-.cookie{
-position:absolute;
-width:60px;
-height:60px;
-border-radius:50%;
-animation:spin 6s linear infinite;
-z-index:0;
-}
-
+#score,#timer{font-size:26px;margin:8px 0;}
+input{font-size:22px;padding:10px;width:120px;text-align:center;border-radius:10px;border:none;}
+button{font-size:20px;padding:10px 20px;margin:10px;border:none;border-radius:10px;cursor:pointer;}
+.cookie{position:absolute;width:60px;height:60px;border-radius:50%;animation:spin 6s linear infinite;z-index:0;cursor:pointer;}
 .choco{background:#d89b55;}
 .white{background:#f3e5ab;}
-
 .chip{position:absolute;width:8px;height:8px;background:#3b2b1a;border-radius:50%;}
 .whiteChip{position:absolute;width:8px;height:8px;background:white;border-radius:50%;}
-
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-
-.sparkle{
-position:absolute;font-size:25px;animation:spark 1s forwards;
-}
-
+.sparkle{position:absolute;font-size:25px;animation:spark 1s forwards;}
 @keyframes spark{0%{opacity:1}100%{opacity:0;transform:scale(2)}}
-
-.explosion{
-position:absolute;font-size:35px;animation:boom 0.7s forwards;
-}
-
+.explosion{position:absolute;font-size:35px;animation:boom 0.7s forwards;}
 @keyframes boom{0%{transform:scale(1)}100%{transform:scale(3);opacity:0}}
-
 #ranking{position:absolute;top:10px;right:10px;}
 #doraemon{position:absolute;bottom:20px;right:20px;font-size:40px;cursor:pointer;opacity:0.2;}
 </style>
@@ -100,8 +45,7 @@ position:absolute;font-size:35px;animation:boom 0.7s forwards;
 <div id="score">スコア:0</div>
 <div id="timer">残り時間:30</div>
 <h2 id="question"></h2>
-<input id="answer" type="number" disabled>
-<br>
+<input id="answer" type="number" disabled><br>
 <button id="startBtn">スタート</button>
 </div>
 
@@ -110,7 +54,6 @@ position:absolute;font-size:35px;animation:boom 0.7s forwards;
 <script>
 const ctx = new (window.AudioContext || window.webkitAudioContext)();
 let score=0,time=30,a,b,correct,timer=null;
-
 const questionEl=document.getElementById("question");
 const scoreEl=document.getElementById("score");
 const timerEl=document.getElementById("timer");
@@ -118,36 +61,17 @@ const answerInput=document.getElementById("answer");
 const startBtn=document.getElementById("startBtn");
 
 // 音
-function correctSound(){
-let osc1=ctx.createOscillator();
-let osc2=ctx.createOscillator();
-let gain=ctx.createGain();
-osc1.frequency.value=1000; osc2.frequency.value=1400;
-osc1.type="sine"; osc2.type="sine";
+function correctSound(){let osc1=ctx.createOscillator();let osc2=ctx.createOscillator();let gain=ctx.createGain();
+osc1.frequency.value=1000; osc2.frequency.value=1400; osc1.type="sine"; osc2.type="sine";
 osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
-osc1.start(); osc2.start();
-gain.gain.setValueAtTime(0.3,ctx.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+1);
-osc1.stop(ctx.currentTime+1); osc2.stop(ctx.currentTime+1);
-}
-function wrongSound(){
-let osc=ctx.createOscillator(); let gain=ctx.createGain();
-osc.type="square"; osc.frequency.value=200;
-osc.connect(gain); gain.connect(ctx.destination);
-osc.start();
-gain.gain.setValueAtTime(0.3,ctx.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
-osc.stop(ctx.currentTime+0.6);
-}
-function endSound(){
-let osc=ctx.createOscillator(); let gain=ctx.createGain();
-osc.type="triangle"; osc.frequency.value=800;
-osc.connect(gain); gain.connect(ctx.destination);
-osc.start();
-gain.gain.setValueAtTime(0.3,ctx.currentTime);
-gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
-osc.stop(ctx.currentTime+0.5);
-}
+osc1.start(); osc2.start(); gain.gain.setValueAtTime(0.3,ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+1); osc1.stop(ctx.currentTime+1); osc2.stop(ctx.currentTime+1);}
+function wrongSound(){let osc=ctx.createOscillator(); let gain=ctx.createGain();
+osc.type="square"; osc.frequency.value=200; osc.connect(gain); gain.connect(ctx.destination);
+osc.start(); gain.gain.setValueAtTime(0.3,ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6); osc.stop(ctx.currentTime+0.6);}
+function endSound(){let osc=ctx.createOscillator(); let gain=ctx.createGain();
+osc.type="triangle"; osc.frequency.value=800; osc.connect(gain); gain.connect(ctx.destination);
+osc.start(); gain.gain.setValueAtTime(0.3,ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5); osc.stop(ctx.currentTime+0.5);}
 
 // クッキー演出
 function createCookie(){
@@ -156,6 +80,7 @@ let type=Math.random()<0.5?"choco":"white";
 cookie.className="cookie "+type;
 cookie.style.left=Math.random()*window.innerWidth+"px";
 cookie.style.top=Math.random()*window.innerHeight+"px";
+// チップ
 for(let i=0;i<6;i++){
 let chip=document.createElement("div");
 chip.className=type==="choco"?"chip":"whiteChip";
@@ -163,24 +88,22 @@ chip.style.left=(Math.random()*40+10)+"px";
 chip.style.top=(Math.random()*40+10)+"px";
 cookie.appendChild(chip);
 }
+// タップで爆発
+cookie.addEventListener("click",()=>{
+explodeCookie(cookie);score++; scoreEl.innerText="スコア:"+score; correctSound(); sparkle();
+});
 document.body.appendChild(cookie);
 moveCookie(cookie);
 }
-function moveCookie(c){
-setInterval(()=>{
-c.style.left=Math.random()*window.innerWidth+"px";
-c.style.top=Math.random()*window.innerHeight+"px";
-},6000);
-}
+function moveCookie(c){setInterval(()=>{c.style.left=Math.random()*window.innerWidth+"px";c.style.top=Math.random()*window.innerHeight+"px";},6000);}
 function spawnCookies(n){for(let i=0;i<n;i++) createCookie();}
-function explodeCookies(){
-document.querySelectorAll(".cookie").forEach(c=>{
+function explodeCookie(c){
 let e=document.createElement("div"); e.className="explosion"; e.innerText="💥";
 e.style.left=c.style.left; e.style.top=c.style.top;
 document.body.appendChild(e); setTimeout(()=>e.remove(),700);
 c.remove();
-});
 }
+function explodeCookies(){document.querySelectorAll(".cookie").forEach(c=>explodeCookie(c));}
 function sparkle(){for(let i=0;i<8;i++){let s=document.createElement("div");s.className="sparkle";s.innerText="✨";s.style.left=Math.random()*window.innerWidth+"px";s.style.top=Math.random()*window.innerHeight+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),1000);}}
 
 // 問題生成
@@ -189,32 +112,24 @@ function newQuestion(){a=Math.floor(Math.random()*10); b=Math.floor(Math.random(
 // 回答判定
 function submitAnswer(){
 let val=parseInt(answerInput.value);
-if(val===correct){
-score++; scoreEl.innerText="スコア:"+score;
-correctSound(); sparkle(); spawnCookies(3);
-}else{ wrongSound(); explodeCookies(); }
+if(val===correct){score++; scoreEl.innerText="スコア:"+score; correctSound(); sparkle(); spawnCookies(3);}
+else{ wrongSound(); explodeCookies();}
 newQuestion();
 }
 
 // ランキング
 function loadRanking(){
-let data=JSON.parse(localStorage.getItem("rank")||"[]");
-data.push(score); data.sort((a,b)=>b-a); data=data.slice(0,5);
-localStorage.setItem("rank",JSON.stringify(data));
-let list=document.getElementById("rankList"); list.innerHTML="";
-data.forEach(s=>{let li=document.createElement("li"); li.innerText=s; list.appendChild(li);});
+let data=JSON.parse(localStorage.getItem("rank")||"[]"); data.push(score); data.sort((a,b)=>b-a); data=data.slice(0,5); localStorage.setItem("rank",JSON.stringify(data));
+let list=document.getElementById("rankList"); list.innerHTML=""; data.forEach(s=>{let li=document.createElement("li"); li.innerText=s; list.appendChild(li);});
 }
 
 // ドラえもんボーナス
-document.getElementById("doraemon").onclick=()=>{
-alert("ぼくドラえもん！"); score+=5; scoreEl.innerText="スコア:"+score;
-}
+document.getElementById("doraemon").onclick=()=>{alert("ぼくドラえもん！"); score+=5; scoreEl.innerText="スコア:"+score;}
 
 // スタート
 startBtn.onclick=function(){
 score=0; time=30; scoreEl.innerText="スコア:0"; timerEl.innerText="残り時間:30";
-answerInput.disabled=false; answerInput.focus();
-spawnCookies(6); newQuestion();
+answerInput.disabled=false; answerInput.focus(); spawnCookies(6); newQuestion();
 if(timer) clearInterval(timer);
 timer=setInterval(()=>{
 time--; timerEl.innerText="残り時間:"+time;
@@ -222,7 +137,7 @@ if(time<=0){clearInterval(timer); answerInput.disabled=true; endSound(); alert("
 },1000);
 }
 
-// Enterキーでも回答
+// Enterキーで回答
 answerInput.addEventListener("keyup",e=>{if(e.key==="Enter") submitAnswer();})
 
 </script>
