@@ -2,30 +2,43 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>脳トレ計算ゲーム</title>
 <style>
-body{
+html,body{
 margin:0;
+padding:0;
+height:100%;
+width:100%;
 font-family:sans-serif;
 overflow:hidden;
-background:linear-gradient(135deg,#5f9cff,#a5d6ff);
+background:linear-gradient(to bottom right,#4facfe,#00f2fe);
+display:flex;
+justify-content:center;
+align-items:center;
 color:white;
-text-align:center;
 }
 
-#game{
+#gameContainer{
+width:95%;
+max-width:400px;
+text-align:center;
 position:relative;
 z-index:2;
-margin-top:100px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(5px);
+border-radius:20px;
+padding:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
 #score,#timer{
-font-size:28px;
-margin:10px;
+font-size:26px;
+margin:8px 0;
 }
 
 input{
-font-size:24px;
+font-size:22px;
 padding:10px;
 width:120px;
 text-align:center;
@@ -34,7 +47,7 @@ border:none;
 }
 
 button{
-font-size:22px;
+font-size:20px;
 padding:10px 20px;
 margin:10px;
 border:none;
@@ -82,7 +95,7 @@ position:absolute;font-size:35px;animation:boom 0.7s forwards;
 <ol id="rankList"></ol>
 </div>
 
-<div id="game">
+<div id="gameContainer">
 <h1>🧠脳トレ計算</h1>
 <div id="score">スコア:0</div>
 <div id="timer">残り時間:30</div>
@@ -109,8 +122,7 @@ function correctSound(){
 let osc1=ctx.createOscillator();
 let osc2=ctx.createOscillator();
 let gain=ctx.createGain();
-osc1.frequency.value=1000;
-osc2.frequency.value=1400;
+osc1.frequency.value=1000; osc2.frequency.value=1400;
 osc1.type="sine"; osc2.type="sine";
 osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
 osc1.start(); osc2.start();
@@ -119,8 +131,7 @@ gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+1);
 osc1.stop(ctx.currentTime+1); osc2.stop(ctx.currentTime+1);
 }
 function wrongSound(){
-let osc=ctx.createOscillator();
-let gain=ctx.createGain();
+let osc=ctx.createOscillator(); let gain=ctx.createGain();
 osc.type="square"; osc.frequency.value=200;
 osc.connect(gain); gain.connect(ctx.destination);
 osc.start();
@@ -129,8 +140,7 @@ gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
 osc.stop(ctx.currentTime+0.6);
 }
 function endSound(){
-let osc=ctx.createOscillator();
-let gain=ctx.createGain();
+let osc=ctx.createOscillator(); let gain=ctx.createGain();
 osc.type="triangle"; osc.frequency.value=800;
 osc.connect(gain); gain.connect(ctx.destination);
 osc.start();
@@ -139,7 +149,7 @@ gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
 osc.stop(ctx.currentTime+0.5);
 }
 
-// クッキー
+// クッキー演出
 function createCookie(){
 let cookie=document.createElement("div");
 let type=Math.random()<0.5?"choco":"white";
@@ -165,8 +175,7 @@ c.style.top=Math.random()*window.innerHeight+"px";
 function spawnCookies(n){for(let i=0;i<n;i++) createCookie();}
 function explodeCookies(){
 document.querySelectorAll(".cookie").forEach(c=>{
-let e=document.createElement("div");
-e.className="explosion"; e.innerText="💥";
+let e=document.createElement("div"); e.className="explosion"; e.innerText="💥";
 e.style.left=c.style.left; e.style.top=c.style.top;
 document.body.appendChild(e); setTimeout(()=>e.remove(),700);
 c.remove();
